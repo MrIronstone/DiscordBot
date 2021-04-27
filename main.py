@@ -9,14 +9,15 @@ from keep_alive import keep_alive
 
 client = discord.Client()
 
-sad_words = ["amcık", "soktuğum", "salak", "kodumun", "sokarım", "siktiğim"]
+curse_words = ["amcık", "soktuğum", "salak", "kodumun", "sokarım", "siktiğim"]
 
-starter_encouragements = [
+default_reacts = [
   "Oğlum küfür etme lan",
   "Sus *mim belanı.",
   "Sussanaaaa!"
 ]
 
+# if there is no any attribute that checks bot's responding, creates one
 if "responding" not in db.keys():
   db["responding"] = True
 
@@ -55,7 +56,7 @@ def update_curses(new_curse):
   else:
     db["curses"] = [new_curse]
 
-def delete_curse(index):
+def delete_curses(index):
   curses = db["curses"]
   if len(curses) > index:
     del curses[index]
@@ -73,37 +74,64 @@ async def on_message(message):
 
   msg = message.content
 
+# this line uses the get_quote method to type random 
+# inspiration message that returned from api
   if msg.startswith('$inspire'):
     quote = get_quote()
     await message.channel.send(quote)
 
+# If bot's responding mode is activated those lines work
   if db["responding"]:
-    options = starter_encouragements
-    if "curses" in db.keys():
-      options = options + db["curses"]
+    options = default_reacts
+    if "reacts" in db.keys():
+      options = options + db["reacts"]
 
-    if any(word in msg for word in sad_words):
+    if any(word in msg for word in curse_words):
       await message.channel.send(random.choice(options))
 
-  if msg.startswith("$new"):
-    react_message = msg.split("$new ",1)[1]
+#region ADDING, DELETING and LISTING REACTS
+  if msg.startswith("$newreact"):
+    react_message = msg.split("$newreact ",1)[1]
     update_reacts(react_message)
-    await message.channel.send("New encouraging message added.")
+    await message.channel.send("New react message added.")
 
-  if msg.startswith("$del"):
-    encouragements = []
-    if "curses" in db.keys():
-      index = int(msg.split("$del",1)[1])
+  if msg.startswith("$delreact"):
+    reacts = []
+    if "reacts" in db.keys():
+      index = int(msg.split("$delreact",1)[1])
       delete_reacts(index)
+      reacts = db["reacts"]
+    await message.channel.send(reacts)
+
+  if msg.startswith("$listreacts"):
+    reacts = []
+    if "reacts" in db.keys():
+      reacts = db["reacts"]
+    await message.channel.send(reacts)
+#endregion
+
+#region ADDING, DELETING and LISTING CURSES
+  if msg.startswith("$newcurse"):
+    curse_message = msg.split("$newcurse ",1)[1]
+    update_curses(curse_message)
+    await message.channel.send("New curse message added.")
+
+  if msg.startswith("$delcurse"):
+    curses = []
+    if "curses" in db.keys():
+      index = int(msg.split("$delcurse",1)[1])
+      delete_curses(index)
       curses = db["curses"]
     await message.channel.send(curses)
 
-  if msg.startswith("$list"):
-    encouragements = []
-    if "encouragements" in db.keys():
-      encouragements = db["encouragements"]
-    await message.channel.send(encouragements)
+  if msg.startswith("$listcurses"):
+    curses = []
+    if "curses" in db.keys():
+      curses = db["curses"]
+    await message.channel.send(curses)
+#endregion
 
+#region ACTIVATING AND DEACTIVATING THE RESPONDING OF BOT
   if msg.startswith("$responding"):
     value = msg.split("$responding ",1)[1]
 
@@ -113,6 +141,7 @@ async def on_message(message):
     else:
       db["responding"] = False
       await message.channel.send("Responding is off.")
+#endregion
 
 keep_alive()
 client.run(os.getenv('TOKEN'))
