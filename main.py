@@ -26,19 +26,41 @@ def get_quote():
   quote = json_data[0]['q'] + " -" + json_data[0]['a']
   return(quote)
 
-def update_encouragements(encouraging_message):
-  if "encouragements" in db.keys():
-    encouragements = db["encouragements"]
-    encouragements.append(encouraging_message)
-    db["encouragements"] = encouragements
-  else:
-    db["encouragements"] = [encouraging_message]
 
-def delete_encouragment(index):
-  encouragements = db["encouragements"]
-  if len(encouragements) > index:
-    del encouragements[index]
-    db["encouragements"] = encouragements
+
+#region BOT REACT
+# This part is related to the answer that bot's react to the curse words
+def update_reacts(react_message):
+  if "reacts" in db.keys():
+    reacts = db["reacts"]
+    reacts.append(react_message)
+    db["reacts"] = reacts
+  else:
+    db["reacts"] = [react_message]
+
+def delete_reacts(index):
+  reacts = db["reacts"]
+  if len(reacts) > index:
+    del reacts[index]
+    db["reacts"] = reacts
+#endregion
+
+#region BOT REACT TO
+# This part is related to the curse words that bot's react to 
+def update_curses(new_curse):
+  if "curses" in db.keys():
+    curses = db["curses"]
+    curses.append(new_curse)
+    db["curses"] = curses
+  else:
+    db["curses"] = [new_curse]
+
+def delete_curse(index):
+  curses = db["curses"]
+  if len(curses) > index:
+    del curses[index]
+    db["curses"] = curses
+#endregion
 
 @client.event
 async def on_ready():
@@ -57,24 +79,24 @@ async def on_message(message):
 
   if db["responding"]:
     options = starter_encouragements
-    if "encouragements" in db.keys():
-      options = options + db["encouragements"]
+    if "curses" in db.keys():
+      options = options + db["curses"]
 
     if any(word in msg for word in sad_words):
       await message.channel.send(random.choice(options))
 
   if msg.startswith("$new"):
-    encouraging_message = msg.split("$new ",1)[1]
-    update_encouragements(encouraging_message)
+    react_message = msg.split("$new ",1)[1]
+    update_reacts(react_message)
     await message.channel.send("New encouraging message added.")
 
   if msg.startswith("$del"):
     encouragements = []
-    if "encouragements" in db.keys():
+    if "curses" in db.keys():
       index = int(msg.split("$del",1)[1])
-      delete_encouragment(index)
-      encouragements = db["encouragements"]
-    await message.channel.send(encouragements)
+      delete_reacts(index)
+      curses = db["curses"]
+    await message.channel.send(curses)
 
   if msg.startswith("$list"):
     encouragements = []
