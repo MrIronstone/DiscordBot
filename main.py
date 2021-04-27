@@ -84,7 +84,7 @@ async def on_message(message):
   if db["responding"]:
     options = default_reacts
     if "reacts" in db.keys():
-      options = options + db["reacts"]
+      options.extend(db["reacts"])
 
     if any(word in msg for word in curse_words):
       await message.channel.send(random.choice(options))
