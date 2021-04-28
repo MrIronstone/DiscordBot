@@ -21,6 +21,10 @@ default_reacts = [
 if "responding" not in db.keys():
   db["responding"] = True
 
+# if there is no any attribute that check's bot's profinity filter, creates one
+if "cursefilter" not in db.keys():
+    db["cursefilter"] = True  
+
 def get_quote():
   response = requests.get("https://zenquotes.io/api/random")
   json_data = json.loads(response.text)
@@ -84,10 +88,15 @@ async def on_message(message):
   if db["responding"]:
     options = default_reacts
     if "reacts" in db.keys():
-      options = options + db["reacts"]
+      options.extend(db["reacts"])
 
-    if any(word in msg for word in curse_words):
-      await message.channel.send(random.choice(options))
+    if "curses" in db.keys():
+      curses = db["curses"]
+      curses.extend(curse_words)
+
+    if any(word in msg for word in curses):
+      await message.delete()
+      await message.channel.send(message.author.mention + " " + random.choice(options))
 
 #region ADDING, DELETING and LISTING REACTS
   if msg.startswith("$newreact"):
@@ -135,12 +144,24 @@ async def on_message(message):
   if msg.startswith("$responding"):
     value = msg.split("$responding ",1)[1]
 
-    if value.lower() == "true":
+    if value.lower() == "on":
       db["responding"] = True
       await message.channel.send("Responding is on.")
     else:
       db["responding"] = False
       await message.channel.send("Responding is off.")
+#endregion
+
+#region ACTIVATING AND DEACTIVATING THE CURSE FILTER OF BOT
+  if msg.startswith("$cursefilter"):
+    value = msg.split("$cursefilter ",1)[1]
+
+    if value.lower() == "on":
+      db["cursefilter"] = True
+      await message.channel.send("Profinity Filter is on.")
+    else:
+      db["cursefilter"] = False
+      await message.channel.send("Profinity Filter is off.")
 #endregion
 
 keep_alive()
