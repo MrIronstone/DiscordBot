@@ -9,19 +9,15 @@ from keep_alive import keep_alive
 
 client = discord.Client()
 
-curse_words = ["amcık", "soktuğum", "salak", "kodumun", "sokarım", "siktiğim"]
+curse_words = []
 
-default_reacts = [
-  "Oğlum küfür etme lan",
-  "Sus *mim belanı.",
-  "Sussanaaaa!"
-]
+default_reacts = []
 
 # if there is no any attribute that checks bot's responding, creates one
 if "responding" not in db.keys():
   db["responding"] = True
 
-# if there is no any attribute that check's bot's profinity filter, creates one
+# if there is no any attribute that check's bot's curse filter, creates one
 if "cursefilter" not in db.keys():
     db["cursefilter"] = True  
 
@@ -85,18 +81,20 @@ async def on_message(message):
     await message.channel.send(quote)
 
 # If bot's responding mode is activated those lines work
-  if db["responding"]:
-    options = default_reacts
-    if "reacts" in db.keys():
-      options.extend(db["reacts"])
+  if not message.author == "Mr.Ironstone#9317":
+    if db["responding"]:
+      options = default_reacts
+      if "reacts" in db.keys():
+        options.extend(db["reacts"])
 
-    if "curses" in db.keys():
-      curses = db["curses"]
-      curses.extend(curse_words)
+        if "curses" in db.keys():
+          curses = db["curses"]
+          curses.extend(curse_words)
 
-    if any(word in msg for word in curses):
-      await message.delete()
-      await message.channel.send(message.author.mention + " " + random.choice(options))
+        if any(word in msg for word in curses):
+        # await message.delete()
+        # await message.channel.send(message.author.mention + " " + random.choice(options))
+          await message.reply(message.author.mention + " " + random.choice(options))
 
 #region ADDING, DELETING and LISTING REACTS
   if msg.startswith("$newreact"):
